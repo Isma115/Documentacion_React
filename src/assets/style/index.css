@@ -1,6 +1,4 @@
-/* #region CSS Root Variables and Global Settings */
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+/* #region CSS Root Variables and Global Settings */  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -15,9 +13,7 @@
 }
 /* #endregion */
 
-/* #region Anchor Link Styles */
-a {
-  font-weight: 500;
+/* #region Anchor Link Styles */  font-weight: 500;
   color: #646cff;
   text-decoration: inherit;
 }
@@ -26,9 +22,7 @@ a:hover {
 }
 /* #endregion */
 
-/* #region Body Layout Base */
-body {
-  margin: 0;
+/* #region Body Layout Base */  margin: 0;
   display: flex;
   place-items: center;
   min-width: 320px;
@@ -36,16 +30,12 @@ body {
 }
 /* #endregion */
 
-/* #region Heading Typography Styles */
-h1 {
-  font-size: 3.2em;
+/* #region Heading Typography Styles */  font-size: 3.2em;
   line-height: 1.1;
 }
 /* #endregion */
 
-/* #region Button Component Styles */
-button {
-  border-radius: 8px;
+/* #region Button Component Styles */  border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
   font-size: 1em;
@@ -64,9 +54,7 @@ button:focus-visible {
 }
 /* #endregion */
 
-/* #region Light Theme Media Query Overrides */
-@media (prefers-color-scheme: light) {
-  :root {
+/* #region Light Theme Media Query Overrides */  :root {
     color: #213547;
     background-color: #ffffff;
   }

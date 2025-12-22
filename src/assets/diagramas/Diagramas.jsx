@@ -1,15 +1,12 @@
-// #region Diagramas Imports
 import { useState, useEffect, useCallback, useRef } from 'react';
-// #endregion
 
-// #region Diagramas Component State and Init
 function Diagramas() {
+    // #region Diagramas Component State and Init
     const [data, setData] = useState({
         root_path: "Cargando...",
         stats: {},
         file_structure: ""
     });
-
     const [droppedFiles, setDroppedFiles] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
@@ -40,6 +37,7 @@ function Diagramas() {
 
         loadData();
         const interval = setInterval(loadData, 500);
+
         return () => clearInterval(interval);
     }, []);
     // #endregion
@@ -142,17 +140,28 @@ function Diagramas() {
     // #endregion
 
     // #region Diagramas Canvas Interaction Logic
-    const addFileToCanvas = async (fileName) => {
-        const placeholderCode = `// Contenido del archivo: ${fileName}\n// (En producción se cargaría el código real)\nfunction placeholder() {\n  console.log("Archivo cargado");\n}`;
+    const [nextZIndex, setNextZIndex] = useState(1);
+    const [nextFileId, setNextFileId] = useState(1);
+    const [draggedItemType, setDraggedItemType] = useState(null);
+
+
+    const addFileToCanvas = async (fileName, x, y) => {
+        // Simulación de contenido para el parseo de estructura
+        const placeholderCode = `// Contenido del archivo: ${fileName}\nfunction ${fileName.replace(/[^a-zA-Z]/g, '_')}() {\n  console.log("Cargado");\n}`;
         const items = extractStructure(placeholderCode);
-        const lineCount = placeholderCode.split('\n').length;
+        const lineCount = items.length;
 
         const newFile = {
+            id: nextFileId,
             name: fileName,
             items,
-            height: Math.max(200, lineCount * 5)
+            height: Math.max(150, lineCount * 30 + 60),
+            x: x || 20,
+            y: y || 20,
+            zIndex: nextZIndex
         };
-
+        setNextFileId(prev => prev + 1);
+        setNextZIndex(prev => prev + 1);
         setDroppedFiles(prev => [...prev, newFile]);
     };
 
@@ -160,54 +169,124 @@ function Diagramas() {
         e.preventDefault();
         e.stopPropagation();
         setIsDragActive(false);
+        setDraggedItemType(null);
 
-        const draggedText = e.dataTransfer.getData('text/plain');
-        if (draggedText && projectFiles.includes(draggedText)) {
-            addFileToCanvas(draggedText);
+        const canvasArea = e.currentTarget.classList.contains('canvas-area')
+            ? e.currentTarget
+            : e.currentTarget.closest('.canvas-area');
+
+        const rect = canvasArea.getBoundingClientRect();
+        const scrollLeft = canvasArea.scrollLeft;
+        const scrollTop = canvasArea.scrollTop;
+
+        const x = e.clientX - rect.left + scrollLeft;
+        const y = e.clientY - rect.top + scrollTop;
+
+        const rawData = e.dataTransfer.getData('text/plain');
+
+        if (!rawData) return;
+
+        try {
+            const data = JSON.parse(rawData);
+
+            if (data && data.type === 'existing-file') {
+                const newX = x - data.offsetX;
+                const newY = y - data.offsetY;
+
+                setDroppedFiles(prev => {
+                    const newFiles = prev.map(file => {
+                        if (file.id === data.fileId) {
+                            return {
+                                ...file,
+                                x: newX,
+                                y: newY,
+                                zIndex: nextZIndex
+                            };
+                        }
+                        return file;
+                    });
+                    return newFiles;
+                });
+                setNextZIndex(prev => prev + 1);
+            } else {
+                addFileToCanvas(rawData, x, y);
+            }
+        } catch (err) {
+            addFileToCanvas(rawData, x, y);
         }
-    }, [projectFiles]);
+    }, [nextZIndex, nextFileId, setDroppedFiles, setNextZIndex, setNextFileId]);
 
     const handleCanvasDragOver = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const draggedText = e.dataTransfer.getData('text/plain');
-        if (draggedText && projectFiles.includes(draggedText)) {
-            setIsDragActive(true);
-        }
+        setIsDragActive(true);
+        e.dataTransfer.dropEffect = draggedItemType === 'existing-file' ? 'move' : 'copy';
     };
 
     const handleCanvasDragLeave = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragActive(false);
+        if (e.currentTarget === e.target || !e.currentTarget.contains(e.relatedTarget)) {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsDragActive(false);
+        }
     };
 
     const handleSuggestionDragStart = (e, fileName) => {
+        setDraggedItemType('new-file');
         e.dataTransfer.setData('text/plain', fileName);
         e.dataTransfer.effectAllowed = 'copy';
-        // Crear un elemento fantasma visible para mejor UX
+
         const dragGhost = document.createElement('div');
         dragGhost.textContent = fileName;
         dragGhost.style.position = 'absolute';
         dragGhost.style.top = '-1000px';
         dragGhost.style.padding = '8px 12px';
-        dragGhost.style.background = 'var(--accent)';
+        dragGhost.style.background = '#007acc';
         dragGhost.style.color = 'white';
         dragGhost.style.borderRadius = '4px';
-        dragGhost.style.fontFamily = 'monospace';
-        dragGhost.style.fontSize = '0.9rem';
         document.body.appendChild(dragGhost);
         e.dataTransfer.setDragImage(dragGhost, 0, 0);
 
-        // Limpiar después de un pequeño delay
         setTimeout(() => {
-            document.body.removeChild(dragGhost);
+            if (document.body.contains(dragGhost)) {
+                document.body.removeChild(dragGhost);
+            }
         }, 100);
     };
 
-    const handleSuggestionMouseDown = (e) => {
-        e.preventDefault(); // Evita que el input pierda el foco al hacer click
+    const handleSuggestionDragEnd = (e) => {
+        setDraggedItemType(null);
     };
+
+    const handleFileBlockDragStart = (e, fileId) => {
+        setDraggedItemType('existing-file');
+        const rect = e.currentTarget.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const offsetY = e.clientY - rect.top;
+        const dragData = JSON.stringify({
+            type: 'existing-file',
+            fileId: fileId,
+            offsetX: offsetX,
+            offsetY: offsetY
+        });
+        e.dataTransfer.setData('text/plain', dragData);
+        e.dataTransfer.effectAllowed = 'move';
+        e.currentTarget.style.opacity = '0.5';
+    };
+
+    const handleFileBlockDragEnd = (e) => {
+        setDraggedItemType(null);
+        e.currentTarget.style.opacity = '1';
+    };
+
+    const handleSuggestionMouseDown = (e) => {
+        // Permitir el inicio del drag
+    };
+
+    const handleRemoveFile = (fileId) => {
+        setDroppedFiles(prev => prev.filter(file => file.id !== fileId));
+    };
+
     // #endregion
 
     // #region Diagramas Component Render
@@ -239,6 +318,7 @@ function Diagramas() {
                                     className={`suggestion-item ${index === selectedSuggestionIndex ? 'selected' : ''}`}
                                     draggable="true"
                                     onDragStart={(e) => handleSuggestionDragStart(e, file)}
+                                    onDragEnd={handleSuggestionDragEnd}
                                     onMouseDown={handleSuggestionMouseDown}
                                     onClick={() => {
                                         setSearchQuery(file);
@@ -268,12 +348,32 @@ function Diagramas() {
                         <p>Busca un fichero arriba y arrástralo aquí para mostrar su estructura.</p>
                     </div>
                 ) : (
-                    <div className="dropped-files-grid">
-                        {droppedFiles.map((fileInfo, index) => (
+                    <div
+                        className="dropped-files-canvas"
+                        onDrop={handleCanvasDrop}
+                        onDragOver={handleCanvasDragOver}
+                        style={{
+                            position: 'relative',
+                            width: `${Math.max(600, ...droppedFiles.map(f => f.x + 300)) + 300}px`,
+                            height: `${Math.max(500, ...droppedFiles.map(f => f.y + f.height)) + 300}px`
+                        }}
+                    >
+                        {droppedFiles.map((fileInfo) => (
                             <div
-                                key={index}
+                                key={fileInfo.id}
                                 className="file-block"
-                                style={{ height: `${fileInfo.height}px` }}
+                                draggable="true"
+                                onDragStart={(e) => handleFileBlockDragStart(e, fileInfo.id)}
+                                onDragEnd={handleFileBlockDragEnd}
+                                style={{
+                                    height: `${fileInfo.height}px`,
+                                    position: 'absolute',
+                                    left: `${fileInfo.x}px`,
+                                    top: `${fileInfo.y}px`,
+                                    zIndex: fileInfo.zIndex || 1,
+                                    margin: 0,
+                                    cursor: 'move'
+                                }}
                             >
                                 <div className="file-block-header">{fileInfo.name}</div>
                                 <ul className="structure-list">
@@ -288,8 +388,8 @@ function Diagramas() {
             </div>
         </div>
     );
+    // #endregion
 }
 
 export default Diagramas;
-// #endregion
 
