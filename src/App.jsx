@@ -1,6 +1,7 @@
 // #region App React Imports and Styling
-import { useState, useEffect } from 'react'
-import './App.css'
+import { useState, useEffect } from 'react';
+import Diagramas from './assets/diagramas/Diagramas.jsx';
+import './assets/style/App.css';
 // #endregion
 
 // #region App Component Logic and State
@@ -9,32 +10,29 @@ function App() {
     root_path: "Cargando...",
     stats: {},
     file_structure: ""
-  })
+  });
 
-  const [activeView, setActiveView] = useState('explorer')
+  const [activeView, setActiveView] = useState('explorer');
 
+  // Ya no se carga aquí la data porque ahora la carga el componente Diagramas por separado
+  // (aunque en este caso el explorer sigue necesitando la data)
   useEffect(() => {
-    // Intentar leer PROJECT_DATA global
     const loadData = () => {
       if (window.PROJECT_DATA) {
-        setData(window.PROJECT_DATA)
+        setData(window.PROJECT_DATA);
       }
-    }
+    };
 
-    loadData()
-    // Polling corto por si carga después
-    const interval = setInterval(loadData, 500)
-    return () => clearInterval(interval)
-  }, [])
+    loadData();
+    const interval = setInterval(loadData, 500);
+    return () => clearInterval(interval);
+  }, []);
 // #endregion
 
   // #region App Component Main Render
   return (
     <div className="app-container">
       <header className="top-bar">
-        <div className="logo">
-          <span>📚</span> Docs Viewer
-        </div>
         <div className="project-info">
           <span className="label">Proyecto:</span>
           <span className="path" title={data.root_path}>{data.root_path}</span>
@@ -44,13 +42,13 @@ function App() {
       <div className="main-content">
         <aside className="sidebar">
           <nav className="nav-menu">
-            <div 
+            <div
               className={`nav-item ${activeView === 'explorer' ? 'active' : ''}`}
               onClick={() => setActiveView('explorer')}
             >
               <span>📂</span> Explorador
             </div>
-            <div 
+            <div
               className={`nav-item ${activeView === 'diagrams' ? 'active' : ''}`}
               onClick={() => setActiveView('diagrams')}
             >
@@ -78,21 +76,13 @@ function App() {
               </div>
             </div>
           ) : (
-            <div className="diagrams-view">
-              <h1>Vista de Diagramas</h1>
-              <p>Diagrama de los ficheros del proyecto seleccionado.</p>
-              <div className="diagram-container">
-                <p>El área de diagramas está vacía por el momento.</p>
-                <p>Aquí se mostrará la representación gráfica de la estructura del proyecto.</p>
-              </div>
-            </div>
+            <Diagramas />
           )}
         </main>
       </div>
     </div>
-  )
+  );
 }
+
+export default App;
 // #endregion
-
-export default App
-
