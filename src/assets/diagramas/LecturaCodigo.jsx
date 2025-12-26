@@ -96,7 +96,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-// #region Configuración de Patrones Regex por Lenguaje
+// #region LecturaCodigo: Configuración de Patrones Regex
 /**
  * Patrones para JavaScript/JSX/TypeScript/TSX
  */
@@ -104,122 +104,121 @@ const PATTERNS_JS = {
     // Componentes de React (funcionales)
     reactComponent: [
         // export default function Component()
-        /^\s*export\s+default\s+function\s+([A-Z]\w*)\s*\(/gm,
+        /^\s*export\s+default\s+function\s+([A-Z][a-zA-Z0-9_$]*)\s*\(/gm,
         // export function Component()
-        /^\s*export\s+(?:const|function)\s+([A-Z]\w*)\s*[=:]/gm,
+        /^\s*export\s+(?:const|function)\s+([A-Z][a-zA-Z0-9_$]*)\s*[=:]/gm,
         // const Component = () => o function Component()
-        /^\s*(?:export\s+)?(?:const|let|var)\s+([A-Z]\w*)\s*=\s*(?:\([^)]*\)\s*=>|function)/gm,
+        /^\s*(?:export\s+)?(?:const|let|var)\s+([A-Z][a-zA-Z0-9_$]*)\s*=\s*(?:\([^)]*\)\s*=>|function)/gm,
         // function Component()
-        /^\s*(?:export\s+)?function\s+([A-Z]\w*)\s*\(/gm,
+        /^\s*(?:export\s+)?function\s+([A-Z][a-zA-Z0-9_$]*)\s*\(/gm,
     ],
 
     // Componentes de clase de React
-    reactClassComponent: /^\s*(?:export\s+)?(?:default\s+)?class\s+([A-Z]\w*)\s+extends\s+(?:React\.)?(?:Component|PureComponent)/gm,
+    reactClassComponent: /^\s*(?:export\s+)?(?:default\s+)?class\s+([A-Z][a-zA-Z0-9_$]*)\s+extends\s+(?:React\.)?(?:Component|PureComponent)/gm,
 
     // Funciones normales
     normalFunction: [
         // function name()
-        /^\s*(?:export\s+)?(?:async\s+)?function\s+([a-z]\w*)\s*\(/gm,
+        /^\s*(?:export\s+)?(?:async\s+)?function\s+([a-z][a-zA-Z0-9_$]*)\s*\(/gm,
         // const name = function()
-        /^\s*(?:export\s+)?(?:const|let|var)\s+([a-z]\w*)\s*=\s*(?:async\s+)?function/gm,
+        /^\s*(?:export\s+)?(?:const|let|var)\s+([a-z][a-zA-Z0-9_$]*)\s*=\s*(?:async\s+)?function/gm,
     ],
 
     // Funciones flecha
     arrowFunction: [
         // const name = () => o const name = async () =>
-        /^\s*(?:export\s+)?(?:const|let|var)\s+([a-z]\w*)\s*=\s*(?:async\s+)?\([^)]*\)\s*=>/gm,
+        /^\s*(?:export\s+)?(?:const|let|var)\s+([a-z][a-zA-Z0-9_$]*)\s*=\s*(?:async\s+)?\([^)]*\)\s*=>/gm,
         // const name = param => (sin paréntesis)
-        /^\s*(?:export\s+)?(?:const|let|var)\s+([a-z]\w*)\s*=\s*\w+\s*=>/gm,
+        /^\s*(?:export\s+)?(?:const|let|var)\s+([a-z][a-zA-Z0-9_$]*)\s*=\s*\w+\s*=>/gm,
     ],
 
     // Custom Hooks de React
-    customHook: /^\s*(?:export\s+)?(?:const|function)\s+(use[A-Z]\w*)\s*[=\(]/gm,
+    customHook: /^\s*(?:export\s+)?(?:const|function)\s+(use[A-Z][a-zA-Z0-9_$]*)\s*[=\(]/gm,
 
     // Clases
-    class: /^\s*(?:export\s+)?(?:default\s+)?class\s+(\w+)/gm,
+    class: /^\s*(?:export\s+)?(?:default\s+)?class\s+([a-zA-Z0-9_$]+)/gm,
 
     // Interfaces (TypeScript)
-    interface: /^\s*(?:export\s+)?interface\s+(\w+)/gm,
+    interface: /^\s*(?:export\s+)?interface\s+([a-zA-Z0-9_$]+)/gm,
 
     // Types (TypeScript)
-    type: /^\s*(?:export\s+)?type\s+(\w+)\s*=/gm,
+    type: /^\s*(?:export\s+)?type\s+([a-zA-Z0-9_$]+)\s*=/gm,
 
     // Enums (TypeScript)
-    enum: /^\s*(?:export\s+)?enum\s+(\w+)/gm,
+    enum: /^\s*(?:export\s+)?enum\s+([a-zA-Z0-9_$]+)/gm,
 
     // Métodos de clase
-    classMethod: /^\s*(?:async\s+)?(?:static\s+)?(\w+)\s*\([^)]*\)\s*{/gm,
+    classMethod: /^\s*(?:async\s+)?(?:static\s+)?([a-zA-Z0-9_$]+)\s*\([^)]*\)\s*{/gm,
 
     // Exports con nombre
     namedExport: /^\s*export\s+{([^}]+)}/gm,
 
     // Default exports
-    defaultExport: /^\s*export\s+default\s+(?:class|function)?\s*(\w+)?/gm,
+    defaultExport: /^\s*export\s+default\s+(?:class|function)?\s*([a-zA-Z0-9_$]+)?/gm,
 };
 
 /**
  * Patrones para Python
  */
 const PATTERNS_PYTHON = {
-    class: /^\s*class\s+(\w+)/gm,
-    function: /^\s*(?:async\s+)?def\s+(\w+)\s*\(/gm,
-    decorator: /^\s*@(\w+)/gm,
+    class: /^\s*class\s+([a-zA-Z_][a-zA-Z0-9_]*)/gm,
+    function: /^\s*(?:async\s+)?def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/gm,
+    decorator: /^\s*@([a-zA-Z_][a-zA-Z0-9_]*)/gm,
 };
 
 /**
  * Patrones para Java
  */
 const PATTERNS_JAVA = {
-    class: /^\s*(?:public\s+)?(?:abstract\s+)?(?:final\s+)?class\s+(\w+)/gm,
-    interface: /^\s*(?:public\s+)?interface\s+(\w+)/gm,
-    enum: /^\s*(?:public\s+)?enum\s+(\w+)/gm,
-    method: /^\s*(?:public|private|protected)\s+(?:static\s+)?(?:\w+|\w+<[^>]+>)\s+(\w+)\s*\(/gm,
-    constructor: /^\s*(?:public|private|protected)\s+(\w+)\s*\(/gm,
+    class: /^\s*(?:public\s+)?(?:abstract\s+)?(?:final\s+)?class\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/gm,
+    interface: /^\s*(?:public\s+)?interface\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/gm,
+    enum: /^\s*(?:public\s+)?enum\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/gm,
+    method: /^\s*(?:public|private|protected)\s+(?:static\s+)?(?:[\w<>]+)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(/gm,
+    constructor: /^\s*(?:public|private|protected)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(/gm,
 };
 
 /**
  * Patrones para C#
  */
 const PATTERNS_CSHARP = {
-    class: /^\s*(?:public\s+)?(?:partial\s+)?(?:abstract\s+)?class\s+(\w+)/gm,
-    interface: /^\s*(?:public\s+)?interface\s+(\w+)/gm,
-    method: /^\s*(?:public|private|protected|internal)\s+(?:static\s+)?(?:async\s+)?(?:\w+|\w+<[^>]+>)\s+(\w+)\s*\(/gm,
-    property: /^\s*(?:public|private|protected)\s+\w+\s+(\w+)\s*{/gm,
-    event: /^\s*(?:public|private|protected)\s+event\s+\w+\s+(\w+)/gm,
+    class: /^\s*(?:public\s+)?(?:partial\s+)?(?:abstract\s+)?class\s+([a-zA-Z_][a-zA-Z0-9_]*)/gm,
+    interface: /^\s*(?:public\s+)?interface\s+([a-zA-Z_][a-zA-Z0-9_]*)/gm,
+    method: /^\s*(?:public|private|protected|internal)\s+(?:static\s+)?(?:async\s+)?(?:[\w<>]+)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/gm,
+    property: /^\s*(?:public|private|protected)\s+\w+\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*{/gm,
+    event: /^\s*(?:public|private|protected)\s+event\s+\w+\s+([a-zA-Z_][a-zA-Z0-9_]*)/gm,
 };
 
 /**
  * Patrones para PHP
  */
 const PATTERNS_PHP = {
-    class: /^\s*(?:abstract\s+)?(?:final\s+)?class\s+(\w+)/gm,
-    function: /^\s*function\s+(\w+)\s*\(/gm,
-    method: /^\s*(?:public|private|protected)\s+(?:static\s+)?function\s+(\w+)\s*\(/gm,
-    trait: /^\s*trait\s+(\w+)/gm,
+    class: /^\s*(?:abstract\s+)?(?:final\s+)?class\s+([a-zA-Z_][a-zA-Z0-9_]*)/gm,
+    function: /^\s*function\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/gm,
+    method: /^\s*(?:public|private|protected)\s+(?:static\s+)?function\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/gm,
+    trait: /^\s*trait\s+([a-zA-Z_][a-zA-Z0-9_]*)/gm,
 };
 
 /**
  * Patrones para Ruby
  */
 const PATTERNS_RUBY = {
-    class: /^\s*class\s+(\w+)/gm,
-    module: /^\s*module\s+(\w+)/gm,
-    method: /^\s*def\s+(\w+)/gm,
+    class: /^\s*class\s+([A-Z][a-zA-Z0-9_]*)/gm,
+    module: /^\s*module\s+([A-Z][a-zA-Z0-9_]*)/gm,
+    method: /^\s*def\s+([a-z_][a-zA-Z0-9_?!]*)/gm,
 };
 
 /**
  * Patrones para Go
  */
 const PATTERNS_GO = {
-    function: /^\s*func\s+(\w+)\s*\(/gm,
-    method: /^\s*func\s+\([^)]+\)\s+(\w+)\s*\(/gm,
-    struct: /^\s*type\s+(\w+)\s+struct/gm,
-    interface: /^\s*type\s+(\w+)\s+interface/gm,
+    function: /^\s*func\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/gm,
+    method: /^\s*func\s+\([^)]+\)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/gm,
+    struct: /^\s*type\s+([a-zA-Z_][a-zA-Z0-9_]*)\s+struct/gm,
+    interface: /^\s*type\s+([a-zA-Z_][a-zA-Z0-9_]*)\s+interface/gm,
 };
-
 // #endregion
 
-// #region Utilidades de Limpieza y Preprocesamiento
+// #region LecturaCodigo: Utilidades de Limpieza
 /**
  * Elimina comentarios de una línea del código
  * @param {string} code - Código fuente
@@ -276,7 +275,7 @@ function limpiarCodigo(code, language = 'js') {
 
 // #endregion
 
-// #region Detectores de Lenguaje
+// #region LecturaCodigo: Detectores de Lenguaje
 /**
  * Detecta el lenguaje de programación basándose en la extensión del archivo
  * @param {string} filename - Nombre del archivo
@@ -318,7 +317,7 @@ function esArchivoReact(filename, code) {
 
 // #endregion
 
-// #region Parsers por Lenguaje
+// #region LecturaCodigo: Parsers por Lenguaje
 /**
  * Parser para JavaScript/JSX/TypeScript/TSX
  * @param {string} code - Código fuente
@@ -624,7 +623,7 @@ function parsearGo(code) {
 
 // #endregion
 
-// #region Función Principal de Análisis
+// #region LecturaCodigo: Función Principal
 /**
  * Analiza la estructura de código y extrae todos los elementos relevantes
  * según el lenguaje de programación detectado.
@@ -743,7 +742,7 @@ function analizarGenerico(code) {
 
 // #endregion
 
-// #region Funciones de Utilidad Exportadas
+// #region LecturaCodigo: Utilidades Exportadas
 /**
  * Obtiene información resumida del archivo
  * @param {string} code - Código fuente
@@ -784,5 +783,7 @@ export function tieneEstructuraValida(code) {
 
 // #endregion
 
+// #region LecturaCodigo: Export Default
 // Export default para facilitar el import
 export default analizarEstructuraCodigo;
+// #endregion

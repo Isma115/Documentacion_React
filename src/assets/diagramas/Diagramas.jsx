@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { analizarEstructuraCodigo } from './LecturaCodigo';
 
 function Diagramas() {
     // #region Diagramas Component State and Init
@@ -122,7 +123,7 @@ function Diagramas() {
         document.addEventListener('click', handleClickOutside);
         return () => document.removeEventListener('click', handleClickOutside);
     }, [contextMenu]);
-    // #endregion
+// #endregion
 
     // #region Diagramas Similarity Helper Logic
     const getSimilarity = (a, b) => {
@@ -145,7 +146,7 @@ function Diagramas() {
         }
         return 1 - distance[shorter.length][longer.length] / longer.length;
     };
-    // #endregion
+// #endregion
 
     // #region Diagramas Search Implementation
     useEffect(() => {
@@ -190,7 +191,7 @@ function Diagramas() {
             setSelectedSuggestionIndex(-1);
         }
     };
-    // #endregion
+// #endregion
 
     // #region Diagramas Structure Parsing Helper Logic
     /**
@@ -200,7 +201,6 @@ function Diagramas() {
      */
     const extractStructure = (code, filename = 'file.js') => {
         // Importar la función de análisis (asegúrate de tener el import al inicio del archivo)
-        // import { analizarEstructuraCodigo } from './ruta/a/LecturaCodigo';
 
         try {
             // Validación básica
@@ -235,16 +235,15 @@ function Diagramas() {
             ];
         }
     };
-    // #endregion
+// #endregion
 
     // #region Diagramas Canvas State Definitions
     const [nextZIndex, setNextZIndex] = useState(1);
     const [nextFileId, setNextFileId] = useState(1);
     const [draggedItemType, setDraggedItemType] = useState(null);
-    // #endregion
+// #endregion
 
     // #region Diagramas Context Menu Handlers
-
     const handleFunctionClick = (e, fileInfo, itemName) => {
         e.preventDefault();
         e.stopPropagation();
@@ -271,10 +270,9 @@ function Diagramas() {
         console.log("Borrando documentación de:", contextMenu.functionName);
         setContextMenu(null);
     };
-    // #endregion
+// #endregion
 
     // #region Diagramas Deletion Handlers
-
     const requestDeleteFile = (fileId) => {
         const file = droppedFiles.find(f => f.id === fileId);
         if (file) {
@@ -302,10 +300,9 @@ function Diagramas() {
         setFileToDelete(null);
         setIsDraggingToDelete(false);
     };
-    // #endregion
+// #endregion
 
     // #region Diagramas Canvas Addition Logic
-
     const addFileToCanvas = async (fileName, x, y) => {
         const placeholderCode = `// Contenido del archivo: ${fileName}\nfunction ${fileName.replace(/[^a-zA-Z]/g, '_')}() {\n  console.log("Cargado");\n}`;
         const items = extractStructure(placeholderCode);
@@ -330,10 +327,9 @@ function Diagramas() {
             return updated;
         });
     };
-    // #endregion
+// #endregion
 
     // #region Diagramas Drag and Drop Handlers
-
     const handleCanvasDrop = (e) => {
         e.preventDefault();
         setIsDragActive(false);
@@ -443,10 +439,9 @@ function Diagramas() {
             setIsDraggingToDelete(false);
         }
     };
-    // #endregion
+// #endregion
 
     // #region Diagramas Drag Source Handlers
-
     const handleSuggestionDragStart = (e, file) => {
         setDraggedSuggestion(file);
         e.dataTransfer.effectAllowed = 'copy';
@@ -469,7 +464,7 @@ function Diagramas() {
         setDraggedFileId(null);
         setIsDraggingToDelete(false);
     };
-    // #endregion
+// #endregion
 
     // #region Diagramas Component Render
     return (
@@ -665,7 +660,7 @@ function Diagramas() {
             )}
         </div>
     );
-    // #endregion
+// #endregion
 }
 
 export default Diagramas;
