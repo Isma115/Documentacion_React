@@ -388,7 +388,7 @@ function Diagramas() {
             </div>
         </div>
     );
-    // #endregion
+// #endregion
 }
 
 export default Diagramas;
