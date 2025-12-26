@@ -27,31 +27,31 @@ function App() {
     const interval = setInterval(loadData, 500);
     return () => clearInterval(interval);
   }, []);
-// #endregion
+  // #endregion
 
-  // #region App Component Main Render
+  // #region App Project Selection Logic
   const [showProjectSelector, setShowProjectSelector] = useState(!data.root_path);
   const fileInputRef = useState(null)[0];
-  
+
   const handleProjectSelect = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.webkitdirectory = true;
     input.directory = true;
     input.multiple = true;
-    
+
     input.onchange = async (e) => {
       const files = Array.from(e.target.files);
-      
+
       if (files.length === 0) return;
-      
+
       // Obtener el nombre del directorio raíz
       const firstPath = files[0].webkitRelativePath;
       const projectPath = firstPath.split('/')[0];
-      
+
       // Escanear los archivos
       const scannedData = await scanFilesFromInput(files);
-      
+
       setData({
         root_path: projectPath,
         file_structure: scannedData.structure.join('\n'),
@@ -59,13 +59,16 @@ function App() {
         files: scannedData.files,
         fileObjects: files
       });
-      
+
       setShowProjectSelector(false);
     };
-    
+
     input.click();
   };
-  
+
+  // #endregion
+
+  // #region App File Scanning Logic
   const scanFilesFromInput = async (files) => {
     const structure = [];
     const filesList = [];
@@ -77,21 +80,21 @@ function App() {
       'Otros Archivos': 0,
       'Directorios': 0
     };
-    
+
     // Organizar archivos por directorios
     const tree = {};
     const directories = new Set();
-    
+
     files.forEach(file => {
       const path = file.webkitRelativePath;
       const parts = path.split('/');
-      
+
       // Contar directorios únicos
       for (let i = 1; i < parts.length; i++) {
         const dirPath = parts.slice(0, i).join('/');
         directories.add(dirPath);
       }
-      
+
       let current = tree;
       for (let i = 0; i < parts.length; i++) {
         const part = parts[i];
@@ -106,33 +109,33 @@ function App() {
         }
       }
     });
-    
+
     stats['Directorios'] = directories.size;
-    
+
     // Construir la estructura visual
     const buildStructure = (node, prefix = '', isLast = true) => {
       const entries = Object.keys(node).filter(k => k !== '_files');
       const files = node._files || [];
-      
+
       // Primero los directorios
       entries.forEach((dir, index) => {
         const isLastDir = index === entries.length - 1 && files.length === 0;
         const connector = isLastDir ? '└── ' : '├── ';
         structure.push(`${prefix}${connector}${dir}/`);
-        
+
         const newPrefix = prefix + (isLastDir ? '    ' : '│   ');
         buildStructure(node[dir], newPrefix, isLastDir);
       });
-      
+
       // Luego los archivos
       files.forEach((file, index) => {
         const isLastFile = index === files.length - 1;
         const connector = isLastFile ? '└── ' : '├── ';
         structure.push(`${prefix}${connector}${file.name}`);
-        
+
         filesList.push(file.path);
         stats['Total Archivos']++;
-        
+
         if (file.name.endsWith('.js') || file.name.endsWith('.jsx') || file.name.endsWith('.ts') || file.name.endsWith('.tsx')) {
           stats['Archivos JavaScript']++;
         } else if (file.name.endsWith('.css') || file.name.endsWith('.scss') || file.name.endsWith('.sass')) {
@@ -144,19 +147,22 @@ function App() {
         }
       });
     };
-    
+
     // Obtener el nombre del directorio raíz
     const rootName = files[0].webkitRelativePath.split('/')[0];
     structure.push(`${rootName}/`);
     buildStructure(tree[rootName] || tree, '', true);
-    
+
     return {
       structure,
       files: filesList,
       stats
     };
   };
-  
+
+  // #endregion
+
+  // #region App Visual Render
   return (
     <div className="app-container">
       {showProjectSelector ? (
