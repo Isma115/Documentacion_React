@@ -27,7 +27,7 @@ function App() {
     const interval = setInterval(loadData, 500);
     return () => clearInterval(interval);
   }, []);
-  // #endregion
+// #endregion
 
   // #region App Project Selection Logic
   const [showProjectSelector, setShowProjectSelector] = useState(!data.root_path);
@@ -85,7 +85,7 @@ function App() {
 
     input.click();
   };
-  // #endregion
+// #endregion
 
   // #region App File Scanning Logic
   const scanFilesFromInput = async (files) => {
@@ -179,7 +179,7 @@ function App() {
     };
   };
 
-  // #endregion
+// #endregion
 
   // #region App Visual Render
   return (

@@ -237,10 +237,13 @@ function Diagramas() {
     };
     // #endregion
 
-    // #region Diagramas Canvas Interaction Logic
+    // #region Diagramas Canvas State Definitions
     const [nextZIndex, setNextZIndex] = useState(1);
     const [nextFileId, setNextFileId] = useState(1);
     const [draggedItemType, setDraggedItemType] = useState(null);
+    // #endregion
+
+    // #region Diagramas Context Menu Handlers
 
     const handleFunctionClick = (e, fileInfo, itemName) => {
         e.preventDefault();
@@ -268,6 +271,9 @@ function Diagramas() {
         console.log("Borrando documentación de:", contextMenu.functionName);
         setContextMenu(null);
     };
+    // #endregion
+
+    // #region Diagramas Deletion Handlers
 
     const requestDeleteFile = (fileId) => {
         const file = droppedFiles.find(f => f.id === fileId);
@@ -296,6 +302,9 @@ function Diagramas() {
         setFileToDelete(null);
         setIsDraggingToDelete(false);
     };
+    // #endregion
+
+    // #region Diagramas Canvas Addition Logic
 
     const addFileToCanvas = async (fileName, x, y) => {
         const placeholderCode = `// Contenido del archivo: ${fileName}\nfunction ${fileName.replace(/[^a-zA-Z]/g, '_')}() {\n  console.log("Cargado");\n}`;
@@ -321,6 +330,9 @@ function Diagramas() {
             return updated;
         });
     };
+    // #endregion
+
+    // #region Diagramas Drag and Drop Handlers
 
     const handleCanvasDrop = (e) => {
         e.preventDefault();
@@ -404,13 +416,36 @@ function Diagramas() {
     const handleCanvasDragOver = (e) => {
         e.preventDefault();
         setIsDragActive(true);
+
+        // Solo activar modo delete si estamos arrastrando un bloque y estamos sobre la papelera
+        if (draggedFileId !== null && trashRef.current) {
+            const trashRect = trashRef.current.getBoundingClientRect();
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+
+            // Verificar si el cursor está sobre la papelera
+            const isOverTrash = (
+                mouseX >= trashRect.left - 80 &&
+                mouseX <= trashRect.right + 80 &&
+                mouseY >= trashRect.top - 80 &&
+                mouseY <= trashRect.bottom + 80
+            );
+
+            setIsDraggingToDelete(isOverTrash);
+        } else {
+            setIsDraggingToDelete(false);
+        }
     };
 
     const handleCanvasDragLeave = (e) => {
         if (e.currentTarget === e.target) {
             setIsDragActive(false);
+            setIsDraggingToDelete(false);
         }
     };
+    // #endregion
+
+    // #region Diagramas Drag Source Handlers
 
     const handleSuggestionDragStart = (e, file) => {
         setDraggedSuggestion(file);
@@ -427,7 +462,6 @@ function Diagramas() {
 
     const handleFileBlockDragStart = (e, fileId) => {
         setDraggedFileId(fileId);
-        setIsDraggingToDelete(true);           // Activamos modo delete visual
         e.dataTransfer.effectAllowed = 'move';
     };
 
@@ -488,6 +522,16 @@ function Diagramas() {
                         onDragOver={(e) => {
                             e.preventDefault();
                             e.dataTransfer.dropEffect = 'move';
+                            // Cuando arrastramos sobre la papelera, activar el modo delete
+                            if (draggedFileId !== null) {
+                                setIsDraggingToDelete(true);
+                            }
+                        }}
+                        onDragLeave={(e) => {
+                            // Cuando salimos de la papelera, desactivar el modo delete
+                            if (draggedFileId !== null) {
+                                setIsDraggingToDelete(false);
+                            }
                         }}
                         onDrop={(e) => {
                             e.preventDefault();
@@ -572,15 +616,15 @@ function Diagramas() {
                         <p>Archivo:</p>
                         <strong>{fileToDelete.name}</strong>
                         <p>Esta acción no se puede deshacer.</p>
-                        
+
                         <div className="delete-confirm-buttons">
-                            <button 
+                            <button
                                 className="btn-cancel"
                                 onClick={cancelDelete}
                             >
                                 Cancelar
                             </button>
-                            <button 
+                            <button
                                 className="btn-danger"
                                 onClick={confirmDeleteFile}
                             >
@@ -621,7 +665,7 @@ function Diagramas() {
             )}
         </div>
     );
-// #endregion
+    // #endregion
 }
 
 export default Diagramas;

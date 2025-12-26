@@ -97,7 +97,6 @@
  */
 
 // #region Configuración de Patrones Regex por Lenguaje
-
 /**
  * Patrones para JavaScript/JSX/TypeScript/TSX
  */
@@ -221,7 +220,6 @@ const PATTERNS_GO = {
 // #endregion
 
 // #region Utilidades de Limpieza y Preprocesamiento
-
 /**
  * Elimina comentarios de una línea del código
  * @param {string} code - Código fuente
@@ -279,7 +277,6 @@ function limpiarCodigo(code, language = 'js') {
 // #endregion
 
 // #region Detectores de Lenguaje
-
 /**
  * Detecta el lenguaje de programación basándose en la extensión del archivo
  * @param {string} filename - Nombre del archivo
@@ -322,7 +319,6 @@ function esArchivoReact(filename, code) {
 // #endregion
 
 // #region Parsers por Lenguaje
-
 /**
  * Parser para JavaScript/JSX/TypeScript/TSX
  * @param {string} code - Código fuente
@@ -629,7 +625,6 @@ function parsearGo(code) {
 // #endregion
 
 // #region Función Principal de Análisis
-
 /**
  * Analiza la estructura de código y extrae todos los elementos relevantes
  * según el lenguaje de programación detectado.
@@ -749,7 +744,6 @@ function analizarGenerico(code) {
 // #endregion
 
 // #region Funciones de Utilidad Exportadas
-
 /**
  * Obtiene información resumida del archivo
  * @param {string} code - Código fuente
