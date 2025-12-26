@@ -200,17 +200,21 @@ function Diagramas() {
      * que soporta múltiples lenguajes de programación
      */
     const extractStructure = (code, filename = 'file.js') => {
-        // Importar la función de análisis (asegúrate de tener el import al inicio del archivo)
-
         try {
             // Validación básica
             if (!code || typeof code !== 'string') {
+                console.warn('[extractStructure] Código inválido:', typeof code);
                 return ['⚠️ Código vacío o inválido'];
             }
 
             if (code.trim().length === 0) {
+                console.warn('[extractStructure] Código vacío');
                 return ['⚠️ Archivo vacío'];
             }
+
+            // Log para debug
+            const preview = code.substring(0, 100).replace(/\n/g, '\\n');
+            console.log(`[extractStructure] Analizando archivo: ${filename}, tamaño: ${code.length} caracteres, preview: "${preview}..."`);
 
             // Usar el analizador robusto de LecturaCodigo.jsx
             const estructura = analizarEstructuraCodigo(code, filename);
@@ -218,6 +222,7 @@ function Diagramas() {
             // Si no se encontró estructura válida, retornar mensaje informativo
             if (!estructura || estructura.length === 0) {
                 const lineas = code.split('\n').length;
+                console.log(`[extractStructure] No se encontró estructura en ${filename}. Líneas: ${lineas}`);
                 return [
                     `📄 ${filename}`,
                     `📊 ${lineas} líneas de código`,
@@ -225,10 +230,11 @@ function Diagramas() {
                 ];
             }
 
+            console.log(`[extractStructure] Éxito: ${estructura.length} estructuras encontradas en ${filename}`);
             return estructura;
 
         } catch (error) {
-            console.error('Error en extractStructure:', error);
+            console.error('[extractStructure] Error inesperado:', error);
             return [
                 '⚠️ Error al analizar el código',
                 'Verifica que el archivo sea válido'
@@ -304,28 +310,78 @@ function Diagramas() {
 
     // #region Diagramas Canvas Addition Logic
     const addFileToCanvas = async (fileName, x, y) => {
-        const placeholderCode = `// Contenido del archivo: ${fileName}\nfunction ${fileName.replace(/[^a-zA-Z]/g, '_')}() {\n  console.log("Cargado");\n}`;
-        const items = extractStructure(placeholderCode);
-        const lineCount = items.length;
+        try {
+            console.log(`[addFileToCanvas] Intentando cargar: ${fileName}`);
+            
+            // Intentar cargar el contenido real del archivo
+            const response = await fetch(`/read-file?path=${encodeURIComponent(fileName)}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const content = await response.text();
+            
+            if (!content || content.trim().length === 0) {
+                console.warn(`[addFileToCanvas] Archivo vacío: ${fileName}`);
+            }
+            
+            console.log(`[addFileToCanvas] Contenido cargado: ${content.length} caracteres`);
+            
+            // Extraer estructura con el contenido real
+            const items = extractStructure(content, fileName);
+            const lineCount = items.length;
 
-        const newFile = {
-            id: nextFileId,
-            name: fileName,
-            items,
-            height: Math.max(150, lineCount * 30 + 60),
-            x: x || 20,
-            y: y || 20,
-            zIndex: nextZIndex
-        };
+            const newFile = {
+                id: nextFileId,
+                name: fileName,
+                items,
+                height: Math.max(150, lineCount * 30 + 60),
+                x: x || 20,
+                y: y || 20,
+                zIndex: nextZIndex
+            };
 
-        setNextFileId(prev => prev + 1);
-        setNextZIndex(prev => prev + 1);
+            setNextFileId(prev => prev + 1);
+            setNextZIndex(prev => prev + 1);
 
-        setDroppedFiles(prev => {
-            const updated = [...prev, newFile];
-            saveDiagramsState(updated);
-            return updated;
-        });
+            setDroppedFiles(prev => {
+                const updated = [...prev, newFile];
+                saveDiagramsState(updated);
+                return updated;
+            });
+            
+            console.log(`[addFileToCanvas] Archivo añadido al canvas: ${fileName}`);
+            
+        } catch (error) {
+            console.error(`[addFileToCanvas] Error al cargar archivo ${fileName}:`, error);
+            
+            // Como fallback, usar el placeholder anterior
+            const placeholderCode = `// Contenido del archivo: ${fileName}\nfunction ${fileName.replace(/[^a-zA-Z]/g, '_')}() {\n  console.log("Cargado");\n}`;
+            const items = extractStructure(placeholderCode);
+            const lineCount = items.length;
+
+            const newFile = {
+                id: nextFileId,
+                name: `${fileName} (error al cargar)`,
+                items,
+                height: Math.max(150, lineCount * 30 + 60),
+                x: x || 20,
+                y: y || 20,
+                zIndex: nextZIndex
+            };
+
+            setNextFileId(prev => prev + 1);
+            setNextZIndex(prev => prev + 1);
+
+            setDroppedFiles(prev => {
+                const updated = [...prev, newFile];
+                saveDiagramsState(updated);
+                return updated;
+            });
+            
+            alert(`⚠️ No se pudo leer el archivo "${fileName}". Se usó contenido de ejemplo. Verifica la consola para más detalles.`);
+        }
     };
 // #endregion
 
@@ -354,16 +410,24 @@ function Diagramas() {
             }
         }
 
-        // Comportamiento normal (mover en canvas)
+        // Comportamiento normal (mover en canvas o añadir nuevo)
         if (draggedSuggestion) {
             const rect = e.currentTarget.getBoundingClientRect();
             const x = Math.max(0, e.clientX - rect.left - 150);
             const y = Math.max(0, e.clientY - rect.top - 50);
 
+            console.log(`[handleCanvasDrop] Añadiendo sugerencia: ${draggedSuggestion} en (${x}, ${y})`);
+            
             fetch(`/read-file?path=${encodeURIComponent(draggedSuggestion)}`)
-                .then(res => res.text())
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.text();
+                })
                 .then(content => {
-                    const structure = extractStructure(content);
+                    console.log(`[handleCanvasDrop] Contenido cargado: ${content.length} caracteres`);
+                    const structure = extractStructure(content, draggedSuggestion);
                     const newFile = {
                         id: Date.now(),
                         name: draggedSuggestion,
@@ -385,8 +449,8 @@ function Diagramas() {
                     setDraggedSuggestion(null);
                 })
                 .catch(err => {
-                    console.error('Error al leer el archivo:', err);
-                    alert('No se pudo leer el archivo');
+                    console.error('[handleCanvasDrop] Error al leer el archivo:', err);
+                    alert(`⚠️ No se pudo leer el archivo: ${err.message}`);
                     setDraggedSuggestion(null);
                 });
         }
@@ -394,6 +458,8 @@ function Diagramas() {
             const rect = e.currentTarget.getBoundingClientRect();
             const newX = Math.max(0, e.clientX - rect.left - 150);
             const newY = Math.max(0, e.clientY - rect.top - 50);
+
+            console.log(`[handleCanvasDrop] Moviendo bloque ${draggedFileId} a (${newX}, ${newY})`);
 
             setDroppedFiles(prev => {
                 const updated = prev.map(file =>

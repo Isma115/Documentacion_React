@@ -262,15 +262,35 @@ function eliminarComentariosMultiLinea(code, language) {
 }
 
 /**
- * Limpia el código eliminando comentarios y líneas vacías
+ * Limpia el código eliminando comentarios, líneas vacías y normalizando espacios
  * @param {string} code - Código fuente
  * @param {string} language - Lenguaje del código
- * @returns {string} - Código limpio
+ * @returns {string} - Código limpio y normalizado
  */
 function limpiarCodigo(code, language = 'js') {
-    let cleaned = eliminarComentariosMultiLinea(code, language);
-    cleaned = eliminarComentariosLinea(cleaned, language);
-    return cleaned;
+    try {
+        // 1. Eliminar comentarios multi-línea
+        let cleaned = eliminarComentariosMultiLinea(code, language);
+        
+        // 2. Eliminar comentarios de línea
+        cleaned = eliminarComentariosLinea(cleaned, language);
+        
+        // 3. Eliminar líneas vacías o solo con espacios
+        cleaned = cleaned.split('\n')
+            .map(line => line.trimEnd())
+            .filter(line => line.trim().length > 0)
+            .join('\n');
+        
+        // 4. Normalizar espacios en blanco al inicio de líneas (max 4 espacios)
+        cleaned = cleaned.split('\n')
+            .map(line => line.replace(/^\s+/, match => ' '.repeat(Math.min(match.length, 20))))
+            .join('\n');
+            
+        return cleaned;
+    } catch (error) {
+        console.error('Error al limpiar código:', error);
+        return code; // Devolver código original si falla la limpieza
+    }
 }
 
 // #endregion
@@ -328,104 +348,134 @@ function parsearJavaScript(code, filename) {
     const estructura = [];
     const esReact = esArchivoReact(filename, code);
     const codigoLimpio = limpiarCodigo(code, 'js');
+    
+    console.log(`[Parser JS] Analizando ${filename}, esReact: ${esReact}, líneas después de limpieza: ${codigoLimpio.split('\n').length}`);
 
     // Buscar componentes de React si es archivo React
     if (esReact) {
         // Componentes funcionales
-        PATTERNS_JS.reactComponent.forEach(pattern => {
+        PATTERNS_JS.reactComponent.forEach((pattern, idx) => {
             pattern.lastIndex = 0; // Reset regex
             let match;
+            let count = 0;
             while ((match = pattern.exec(codigoLimpio)) !== null) {
                 const componentName = match[1];
                 if (componentName && !estructura.includes(`⚛️ Component ${componentName}`)) {
                     estructura.push(`⚛️ Component ${componentName}`);
+                    count++;
                 }
             }
+            if (count > 0) console.log(`[Parser JS] Pattern reactComponent[${idx}] encontró ${count} componentes`);
         });
 
         // Componentes de clase
         PATTERNS_JS.reactClassComponent.lastIndex = 0;
         let match;
+        let count = 0;
         while ((match = PATTERNS_JS.reactClassComponent.exec(codigoLimpio)) !== null) {
             const componentName = match[1];
             if (!estructura.includes(`⚛️ Class Component ${componentName}`)) {
                 estructura.push(`⚛️ Class Component ${componentName}`);
+                count++;
             }
         }
+        if (count > 0) console.log(`[Parser JS] Pattern reactClassComponent encontró ${count} componentes de clase`);
 
         // Custom Hooks
         PATTERNS_JS.customHook.lastIndex = 0;
+        count = 0;
         while ((match = PATTERNS_JS.customHook.exec(codigoLimpio)) !== null) {
             const hookName = match[1];
             if (!estructura.includes(`🪝 Hook ${hookName}`)) {
                 estructura.push(`🪝 Hook ${hookName}`);
+                count++;
             }
         }
+        if (count > 0) console.log(`[Parser JS] Pattern customHook encontró ${count} hooks`);
     }
 
     // Funciones normales
-    PATTERNS_JS.normalFunction.forEach(pattern => {
+    PATTERNS_JS.normalFunction.forEach((pattern, idx) => {
         pattern.lastIndex = 0;
         let match;
+        let count = 0;
         while ((match = pattern.exec(codigoLimpio)) !== null) {
             const funcName = match[1];
             if (funcName && !estructura.some(e => e.includes(funcName))) {
                 estructura.push(`function ${funcName}`);
+                count++;
             }
         }
+        if (count > 0) console.log(`[Parser JS] Pattern normalFunction[${idx}] encontró ${count} funciones`);
     });
 
     // Funciones flecha
-    PATTERNS_JS.arrowFunction.forEach(pattern => {
+    PATTERNS_JS.arrowFunction.forEach((pattern, idx) => {
         pattern.lastIndex = 0;
         let match;
+        let count = 0;
         while ((match = pattern.exec(codigoLimpio)) !== null) {
             const funcName = match[1];
             if (funcName && !estructura.some(e => e.includes(funcName))) {
                 estructura.push(`arrow function ${funcName}`);
+                count++;
             }
         }
+        if (count > 0) console.log(`[Parser JS] Pattern arrowFunction[${idx}] encontró ${count} funciones flecha`);
     });
 
     // Clases (que no son componentes de React)
     PATTERNS_JS.class.lastIndex = 0;
     let match;
+    let count = 0;
     while ((match = PATTERNS_JS.class.exec(codigoLimpio)) !== null) {
         const className = match[1];
-        if (className && !estructura.some(e => e.includes(className))) {
+        if (className && !className.match(/^[A-Z]/) && !estructura.some(e => e.includes(className))) {
             estructura.push(`class ${className}`);
+            count++;
         }
     }
+    if (count > 0) console.log(`[Parser JS] Pattern class encontró ${count} clases`);
 
     // Interfaces (TypeScript)
     if (filename.endsWith('.ts') || filename.endsWith('.tsx')) {
         PATTERNS_JS.interface.lastIndex = 0;
+        count = 0;
         while ((match = PATTERNS_JS.interface.exec(codigoLimpio)) !== null) {
             const interfaceName = match[1];
             if (!estructura.includes(`interface ${interfaceName}`)) {
                 estructura.push(`interface ${interfaceName}`);
+                count++;
             }
         }
+        if (count > 0) console.log(`[Parser JS] Pattern interface encontró ${count} interfaces`);
 
         // Types
         PATTERNS_JS.type.lastIndex = 0;
+        count = 0;
         while ((match = PATTERNS_JS.type.exec(codigoLimpio)) !== null) {
             const typeName = match[1];
             if (!estructura.includes(`type ${typeName}`)) {
                 estructura.push(`type ${typeName}`);
+                count++;
             }
         }
+        if (count > 0) console.log(`[Parser JS] Pattern type encontró ${count} types`);
 
         // Enums
         PATTERNS_JS.enum.lastIndex = 0;
+        count = 0;
         while ((match = PATTERNS_JS.enum.exec(codigoLimpio)) !== null) {
             const enumName = match[1];
             if (!estructura.includes(`enum ${enumName}`)) {
                 estructura.push(`enum ${enumName}`);
+                count++;
             }
         }
+        if (count > 0) console.log(`[Parser JS] Pattern enum encontró ${count} enums`);
     }
 
+    console.log(`[Parser JS] Resultado final: ${estructura.length} estructuras encontradas`);
     return estructura;
 }
 
@@ -437,20 +487,28 @@ function parsearJavaScript(code, filename) {
 function parsearPython(code) {
     const estructura = [];
     const codigoLimpio = limpiarCodigo(code, 'python');
+    console.log(`[Parser Python] Analizando, líneas después de limpieza: ${codigoLimpio.split('\n').length}`);
 
     // Clases
     PATTERNS_PYTHON.class.lastIndex = 0;
     let match;
+    let count = 0;
     while ((match = PATTERNS_PYTHON.class.exec(codigoLimpio)) !== null) {
         estructura.push(`class ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser Python] Pattern class encontró ${count} clases`);
 
     // Funciones
     PATTERNS_PYTHON.function.lastIndex = 0;
+    count = 0;
     while ((match = PATTERNS_PYTHON.function.exec(codigoLimpio)) !== null) {
         estructura.push(`function ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser Python] Pattern function encontró ${count} funciones`);
 
+    console.log(`[Parser Python] Resultado final: ${estructura.length} estructuras encontradas`);
     return estructura;
 }
 
@@ -462,32 +520,46 @@ function parsearPython(code) {
 function parsearJava(code) {
     const estructura = [];
     const codigoLimpio = limpiarCodigo(code, 'java');
+    console.log(`[Parser Java] Analizando, líneas después de limpieza: ${codigoLimpio.split('\n').length}`);
 
     // Clases
     PATTERNS_JAVA.class.lastIndex = 0;
     let match;
+    let count = 0;
     while ((match = PATTERNS_JAVA.class.exec(codigoLimpio)) !== null) {
         estructura.push(`class ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser Java] Pattern class encontró ${count} clases`);
 
     // Interfaces
     PATTERNS_JAVA.interface.lastIndex = 0;
+    count = 0;
     while ((match = PATTERNS_JAVA.interface.exec(codigoLimpio)) !== null) {
         estructura.push(`interface ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser Java] Pattern interface encontró ${count} interfaces`);
 
     // Enums
     PATTERNS_JAVA.enum.lastIndex = 0;
+    count = 0;
     while ((match = PATTERNS_JAVA.enum.exec(codigoLimpio)) !== null) {
         estructura.push(`enum ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser Java] Pattern enum encontró ${count} enums`);
 
     // Métodos
     PATTERNS_JAVA.method.lastIndex = 0;
+    count = 0;
     while ((match = PATTERNS_JAVA.method.exec(codigoLimpio)) !== null) {
         estructura.push(`method ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser Java] Pattern method encontró ${count} métodos`);
 
+    console.log(`[Parser Java] Resultado final: ${estructura.length} estructuras encontradas`);
     return estructura;
 }
 
@@ -499,26 +571,37 @@ function parsearJava(code) {
 function parsearCSharp(code) {
     const estructura = [];
     const codigoLimpio = limpiarCodigo(code, 'csharp');
+    console.log(`[Parser C#] Analizando, líneas después de limpieza: ${codigoLimpio.split('\n').length}`);
 
     // Clases
     PATTERNS_CSHARP.class.lastIndex = 0;
     let match;
+    let count = 0;
     while ((match = PATTERNS_CSHARP.class.exec(codigoLimpio)) !== null) {
         estructura.push(`class ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser C#] Pattern class encontró ${count} clases`);
 
     // Interfaces
     PATTERNS_CSHARP.interface.lastIndex = 0;
+    count = 0;
     while ((match = PATTERNS_CSHARP.interface.exec(codigoLimpio)) !== null) {
         estructura.push(`interface ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser C#] Pattern interface encontró ${count} interfaces`);
 
     // Métodos
     PATTERNS_CSHARP.method.lastIndex = 0;
+    count = 0;
     while ((match = PATTERNS_CSHARP.method.exec(codigoLimpio)) !== null) {
         estructura.push(`method ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser C#] Pattern method encontró ${count} métodos`);
 
+    console.log(`[Parser C#] Resultado final: ${estructura.length} estructuras encontradas`);
     return estructura;
 }
 
@@ -530,26 +613,37 @@ function parsearCSharp(code) {
 function parsearPHP(code) {
     const estructura = [];
     const codigoLimpio = limpiarCodigo(code, 'php');
+    console.log(`[Parser PHP] Analizando, líneas después de limpieza: ${codigoLimpio.split('\n').length}`);
 
     // Clases
     PATTERNS_PHP.class.lastIndex = 0;
     let match;
+    let count = 0;
     while ((match = PATTERNS_PHP.class.exec(codigoLimpio)) !== null) {
         estructura.push(`class ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser PHP] Pattern class encontró ${count} clases`);
 
     // Funciones
     PATTERNS_PHP.function.lastIndex = 0;
+    count = 0;
     while ((match = PATTERNS_PHP.function.exec(codigoLimpio)) !== null) {
         estructura.push(`function ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser PHP] Pattern function encontró ${count} funciones`);
 
     // Traits
     PATTERNS_PHP.trait.lastIndex = 0;
+    count = 0;
     while ((match = PATTERNS_PHP.trait.exec(codigoLimpio)) !== null) {
         estructura.push(`trait ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser PHP] Pattern trait encontró ${count} traits`);
 
+    console.log(`[Parser PHP] Resultado final: ${estructura.length} estructuras encontradas`);
     return estructura;
 }
 
@@ -561,26 +655,37 @@ function parsearPHP(code) {
 function parsearRuby(code) {
     const estructura = [];
     const codigoLimpio = limpiarCodigo(code, 'ruby');
+    console.log(`[Parser Ruby] Analizando, líneas después de limpieza: ${codigoLimpio.split('\n').length}`);
 
     // Clases
     PATTERNS_RUBY.class.lastIndex = 0;
     let match;
+    let count = 0;
     while ((match = PATTERNS_RUBY.class.exec(codigoLimpio)) !== null) {
         estructura.push(`class ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser Ruby] Pattern class encontró ${count} clases`);
 
     // Módulos
     PATTERNS_RUBY.module.lastIndex = 0;
+    count = 0;
     while ((match = PATTERNS_RUBY.module.exec(codigoLimpio)) !== null) {
         estructura.push(`module ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser Ruby] Pattern module encontró ${count} módulos`);
 
     // Métodos
     PATTERNS_RUBY.method.lastIndex = 0;
+    count = 0;
     while ((match = PATTERNS_RUBY.method.exec(codigoLimpio)) !== null) {
         estructura.push(`method ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser Ruby] Pattern method encontró ${count} métodos`);
 
+    console.log(`[Parser Ruby] Resultado final: ${estructura.length} estructuras encontradas`);
     return estructura;
 }
 
@@ -592,32 +697,46 @@ function parsearRuby(code) {
 function parsearGo(code) {
     const estructura = [];
     const codigoLimpio = limpiarCodigo(code, 'go');
+    console.log(`[Parser Go] Analizando, líneas después de limpieza: ${codigoLimpio.split('\n').length}`);
 
     // Structs
     PATTERNS_GO.struct.lastIndex = 0;
     let match;
+    let count = 0;
     while ((match = PATTERNS_GO.struct.exec(codigoLimpio)) !== null) {
         estructura.push(`struct ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser Go] Pattern struct encontró ${count} structs`);
 
     // Interfaces
     PATTERNS_GO.interface.lastIndex = 0;
+    count = 0;
     while ((match = PATTERNS_GO.interface.exec(codigoLimpio)) !== null) {
         estructura.push(`interface ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser Go] Pattern interface encontró ${count} interfaces`);
 
     // Funciones
     PATTERNS_GO.function.lastIndex = 0;
+    count = 0;
     while ((match = PATTERNS_GO.function.exec(codigoLimpio)) !== null) {
         estructura.push(`function ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser Go] Pattern function encontró ${count} funciones`);
 
     // Métodos
     PATTERNS_GO.method.lastIndex = 0;
+    count = 0;
     while ((match = PATTERNS_GO.method.exec(codigoLimpio)) !== null) {
         estructura.push(`method ${match[1]}`);
+        count++;
     }
+    if (count > 0) console.log(`[Parser Go] Pattern method encontró ${count} métodos`);
 
+    console.log(`[Parser Go] Resultado final: ${estructura.length} estructuras encontradas`);
     return estructura;
 }
 
@@ -642,16 +761,19 @@ function parsearGo(code) {
 export function analizarEstructuraCodigo(code, filename = 'file.js') {
     // Validación de entrada
     if (!code || typeof code !== 'string') {
+        console.warn('[analizarEstructuraCodigo] Código inválido:', typeof code);
         return ['⚠️ Código vacío o inválido'];
     }
 
     if (code.trim().length === 0) {
+        console.warn('[analizarEstructuraCodigo] Código vacío');
         return ['⚠️ Archivo vacío'];
     }
 
     try {
         // Detectar el lenguaje
         const lenguaje = detectarLenguaje(filename);
+        console.log(`[analizarEstructuraCodigo] Detectado lenguaje: ${lenguaje} para archivo: ${filename}`);
 
         // Aplicar el parser correspondiente
         let estructura = [];
@@ -679,11 +801,13 @@ export function analizarEstructuraCodigo(code, filename = 'file.js') {
                 estructura = parsearGo(code);
                 break;
             default:
+                console.warn(`[analizarEstructuraCodigo] Lenguaje no reconocido: ${lenguaje}, usando parser JS por defecto`);
                 estructura = parsearJavaScript(code, filename);
         }
 
         // Si no se encontró nada, aplicar análisis genérico
         if (estructura.length === 0) {
+            console.log('[analizarEstructuraCodigo] No se encontraron estructuras específicas, aplicando análisis genérico');
             estructura = analizarGenerico(code);
         }
 
@@ -691,6 +815,7 @@ export function analizarEstructuraCodigo(code, filename = 'file.js') {
         if (estructura.length === 0) {
             const lineas = code.split('\n').length;
             const caracteres = code.length;
+            console.log(`[analizarEstructuraCodigo] No se detectaron estructuras. Líneas: ${lineas}, caracteres: ${caracteres}`);
             return [
                 `📄 Archivo: ${filename}`,
                 `📊 ${lineas} líneas, ${caracteres} caracteres`,
@@ -698,10 +823,11 @@ export function analizarEstructuraCodigo(code, filename = 'file.js') {
             ];
         }
 
+        console.log(`[analizarEstructuraCodigo] Éxito: ${estructura.length} estructuras encontradas`);
         return estructura;
 
     } catch (error) {
-        console.error('Error al analizar estructura:', error);
+        console.error('[analizarEstructuraCodigo] Error al analizar estructura:', error);
         return [
             '⚠️ Error al analizar el código',
             `Mensaje: ${error.message}`,
@@ -736,6 +862,10 @@ function analizarGenerico(code) {
             }
         });
     });
+
+    if (estructura.length > 0) {
+        console.log(`[analizarGenerico] Encontradas ${estructura.length} estructuras genéricas`);
+    }
 
     return estructura;
 }
