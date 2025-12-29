@@ -1,9 +1,10 @@
-/* #region Main Content Base */
-.content-area {
+/* #region Main Content Base */.content-area {
     flex: 1;
     padding: 30px;
     overflow-y: auto;
     background-color: var(--bg-dark);
+    width: 100%;
+    position: relative;
 }
 
 .welcome-screen h1 {
@@ -11,5 +12,4 @@
     margin-bottom: 10px;
     font-size: 1.8rem;
 }
-
 /* #endregion */

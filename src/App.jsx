@@ -21,7 +21,7 @@ function App() {
 
   const [activeView, setActiveView] = useState('explorer');
 
-  // Estado para controlar si la barra lateral está colapsada
+  // Estado para controlar si la barra lateral está colapsada (inicia en false - siempre abierto)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Ya no se carga aquí la data porque ahora la carga el componente Diagramas por separado
@@ -37,7 +37,7 @@ function App() {
     const interval = setInterval(loadData, 500);
     return () => clearInterval(interval);
   }, []);
-// #endregion
+  // #endregion
 
   // #region App Project Selection Logic
   const [showProjectSelector, setShowProjectSelector] = useState(!data.root_path);
@@ -193,7 +193,7 @@ function App() {
 
   // #region App Visual Render
   return (
-    <div className="app-container">
+    <div className={`app-container ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       {showProjectSelector ? (
         <div className="project-selector-overlay">
           <div className="project-selector-modal">
@@ -228,7 +228,7 @@ function App() {
           </header>
 
           <div className="main-content">
-            <aside className="sidebar">
+            <aside className={`sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
               <nav className="nav-menu">
                 <div
                   className={`nav-item ${activeView === 'explorer' ? 'active' : ''}`}
@@ -247,6 +247,17 @@ function App() {
                 <pre>{data.file_structure || "No hay estructura disponible"}</pre>
               </div>
             </aside>
+
+            {/* Botón de colapsar fuera del sidebar para que sea siempre visible */}
+            <button
+              className="toggle-sidebar-btn"
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              title={isSidebarCollapsed ? "Desplegar menú" : "Comprimir menú"}
+            >
+              <span className="toggle-icon">
+                {isSidebarCollapsed ? '▶' : '◀'}
+              </span>
+            </button>
 
             <main className="content-area">
               {activeView === 'explorer' ? (
