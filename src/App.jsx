@@ -1,7 +1,14 @@
 // #region App React Imports and Styling
 import { useState, useEffect } from 'react';
 import Diagramas from './assets/diagramas/Diagramas.jsx';
-import './assets/style/App.css';
+import './assets/style/base/Global.css';
+import './assets/style/layout/Layout.css';
+import './assets/style/layout/Header.css';
+import './assets/style/layout/Sidebar.css';
+import './assets/style/layout/MainContent.css';
+import './assets/style/components/Dashboard.css';
+import './assets/style/components/Modals.css';
+import './assets/style/components/Diagrams.css';
 // #endregion
 
 // #region App Component Logic and State
@@ -13,6 +20,9 @@ function App() {
   });
 
   const [activeView, setActiveView] = useState('explorer');
+
+  // Estado para controlar si la barra lateral está colapsada
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Ya no se carga aquí la data porque ahora la carga el componente Diagramas por separado
   // (aunque en este caso el explorer sigue necesitando la data)
@@ -85,7 +95,7 @@ function App() {
 
     input.click();
   };
-// #endregion
+  // #endregion
 
   // #region App File Scanning Logic
   const scanFilesFromInput = async (files) => {
@@ -179,7 +189,7 @@ function App() {
     };
   };
 
-// #endregion
+  // #endregion
 
   // #region App Visual Render
   return (

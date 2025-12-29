@@ -1,0 +1,391 @@
+/* #region Diagrams Layout */
+.diagrams-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.diagrams-header {
+    padding: 0 0 10px 0;
+}
+
+.diagrams-header h1 {
+    color: #fff;
+    font-size: 1.8rem;
+    margin: 0;
+}
+
+/* #endregion */
+
+/* #region Diagrams Search & Filtering */
+.file-search-container {
+    margin: 20px 0;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.search-box-wrapper {
+    position: relative;
+    max-width: 600px;
+    flex: 1;
+    min-width: 320px;
+}
+
+.file-search-input {
+    width: 100%;
+    padding: 12px 16px;
+    background-color: var(--bg-sidebar);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.file-search-input:focus {
+    border-color: var(--accent);
+}
+
+.suggestions-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin: 4px 0 0 0;
+    padding: 0;
+    list-style: none;
+    background-color: var(--bg-sidebar);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.suggestion-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: background-color 0.15s;
+    user-select: none;
+}
+
+.suggestion-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.suggestion-item.selected {
+    background-color: rgba(0, 122, 204, 0.2);
+    color: var(--accent);
+}
+
+.search-hint {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.search-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 700px;
+}
+
+/* #endregion */
+
+/* #region Diagrams Canvas */
+.canvas-area {
+    flex: 1;
+    background-color: var(--bg-sidebar);
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    position: relative;
+    overflow: auto;
+    min-height: 400px;
+    transition: border-color 0.2s;
+}
+
+.canvas-area::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.canvas-area::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+    border-radius: 6px;
+}
+
+.canvas-area::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 6px;
+}
+
+.canvas-area::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+.canvas-area.drag-active {
+    border-color: var(--accent);
+    background-color: rgba(0, 122, 204, 0.05);
+}
+
+.canvas-area.delete-mode {
+    border-color: #e74c3c;
+    background-color: rgba(231, 76, 60, 0.05);
+    transition: background-color 0.3s ease;
+}
+
+.empty-canvas-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+.empty-canvas-message p {
+    margin: 8px 0;
+}
+
+.dropped-files-canvas {
+    position: relative;
+    padding: 20px;
+}
+
+/* #endregion */
+
+/* #region Diagrams File Blocks */
+.file-block {
+    width: 280px;
+    background-color: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+
+.file-block:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-color: var(--accent);
+}
+
+.file-block-header {
+    background-color: var(--accent);
+    color: #fff;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: move;
+}
+
+.structure-list {
+    margin: 0;
+    padding: 12px 16px;
+    list-style: none;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    max-height: calc(100% - 48px);
+    overflow-y: auto;
+}
+
+.structure-list li {
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.structure-list li:hover {
+    color: #ffd700;
+    text-shadow:
+        0 0 1px #ffd700,
+        0 0 2px #ffd700,
+        0 0 3px #ffd700;
+    transform: translateX(3px);
+}
+
+.structure-list li:last-child {
+    border-bottom: none;
+}
+
+/* #endregion */
+
+/* #region Diagrams Context Menu */
+.context-menu {
+    background-color: #252526;
+    border: 1px solid #454545;
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    min-width: 180px;
+    padding: 5px 0;
+    animation: fadeIn 0.1s ease-out;
+}
+
+.context-menu-header {
+    padding: 8px 15px;
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+    border-bottom: 1px solid #333;
+    margin-bottom: 5px;
+}
+
+.context-menu-item {
+    padding: 8px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #ccc;
+    transition: background 0.2s;
+}
+
+.context-menu-item:hover {
+    background-color: #094771;
+    color: white;
+}
+
+.context-menu-item-danger:hover {
+    background-color: #911b1b;
+}
+
+.context-menu-icon {
+    width: 16px;
+    text-align: center;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* #endregion */
+
+/* #region Diagrams Trash Zone & Confirm Modal */
+.trash-zone-compact {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(192, 57, 43, 0.12);
+    border: 1px solid rgba(192, 57, 43, 0.35);
+    border-radius: 8px;
+    transition: all 0.18s ease;
+    cursor: pointer;
+}
+
+.trash-zone-compact:hover {
+    background: rgba(192, 57, 43, 0.22);
+    border-color: rgba(192, 57, 43, 0.6);
+}
+
+.trash-zone-compact.trash-active {
+    background: rgba(231, 76, 60, 0.38);
+    border-color: #e74c3c;
+    transform: scale(1.12);
+    box-shadow: 0 0 12px rgba(231, 76, 60, 0.35);
+}
+
+.trash-zone-compact .trash-icon-small {
+    font-size: 1.5rem;
+    color: #e74c3c;
+    opacity: 0.8;
+    transition: opacity 0.18s ease;
+}
+
+.trash-zone-compact:hover .trash-icon-small,
+.trash-zone-compact.trash-active .trash-icon-small {
+    opacity: 1;
+}
+
+.delete-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.delete-confirm-modal {
+    background: #252526;
+    padding: 28px 32px;
+    border-radius: 12px;
+    width: 380px;
+    max-width: 92%;
+    text-align: center;
+    border: 1px solid #444;
+}
+
+.delete-confirm-modal h3 {
+    margin: 0 0 18px 0;
+    color: #e74c3c;
+    font-size: 1.4rem;
+}
+
+.delete-confirm-modal strong {
+    color: #fff;
+    font-size: 1.25rem;
+    margin: 12px 0;
+    display: block;
+}
+
+.delete-confirm-buttons {
+    margin-top: 24px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+.btn-cancel {
+    padding: 10px 28px;
+    background: #555;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #666;
+}
+
+.btn-danger {
+    padding: 10px 28px;
+    background: #c0392b;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.btn-danger:hover {
+    background: #a93226;
+}
+
+/* #endregion */

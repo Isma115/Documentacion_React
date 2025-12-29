@@ -1,0 +1,27 @@
+/* #region Global Defaults & Reset */
+:root {
+    --bg-dark: #1e1e1e;
+    --bg-sidebar: #252526;
+    --bg-header: #333333;
+    --text-primary: #cccccc;
+    --text-secondary: #999999;
+    --accent: #007acc;
+    --border: #3e3e42;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+    margin: 0;
+}
+
+/* #endregion */

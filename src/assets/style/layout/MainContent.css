@@ -1,0 +1,15 @@
+/* #region Main Content Base */
+.content-area {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    background-color: var(--bg-dark);
+}
+
+.welcome-screen h1 {
+    color: #fff;
+    margin-bottom: 10px;
+    font-size: 1.8rem;
+}
+
+/* #endregion */
